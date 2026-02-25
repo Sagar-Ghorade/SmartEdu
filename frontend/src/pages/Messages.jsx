@@ -55,7 +55,7 @@ function Messages() {
         >
           <div className="card">
             <div className="relative mb-4">
-              <FiSearch className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <FiSearch className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search conversations..."

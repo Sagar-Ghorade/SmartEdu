@@ -24,13 +24,14 @@ exports.enrollStudent = async (req, res) => {
       if (found.length > 0) {
         resolvedClassId = found[0].id;
       } else {
-        // insert a new class record for this board and class number
+        // insert a new class record for this board and class number (RETURNING id)
         const className = `${class_number}th`;
         const [ins] = await db.query(
-          "INSERT INTO classes (class_name, board) VALUES (?, ?)",
+          "INSERT INTO classes (class_name, board) VALUES (?, ?) RETURNING id",
           [className, board]
         );
-        resolvedClassId = ins.insertId;
+        // `ins` is the rows array from pg; take first row's id
+        resolvedClassId = ins[0] && ins[0].id;
       }
     }
 
@@ -72,19 +73,19 @@ exports.enrollStudent = async (req, res) => {
         );
         if (foundSub.length > 0) resolvedSubjectId = foundSub[0].id;
         else {
-          // create subject record
+          // create subject record and return id
           const [insSub] = await db.query(
-            "INSERT INTO subjects (class_id, subject_name) VALUES (?, ?)",
+            "INSERT INTO subjects (class_id, subject_name) VALUES (?, ?) RETURNING id",
             [resolvedClassId, subject_name]
           );
-          resolvedSubjectId = insSub.insertId;
+          resolvedSubjectId = insSub[0] && insSub[0].id;
         }
       }
     }
 
     // Prevent duplicate enrollment
     const [existing] = await db.query(
-      "SELECT id FROM enrollments WHERE user_id = ? AND class_id = ? AND subject_id <=> ?",
+      "SELECT id FROM enrollments WHERE user_id = ? AND class_id = ? AND subject_id IS NOT DISTINCT FROM ?",
       [user_id, resolvedClassId, resolvedSubjectId || null]
     );
 
@@ -93,13 +94,13 @@ exports.enrollStudent = async (req, res) => {
     }
 
     const [insEnroll] = await db.query(
-      "INSERT INTO enrollments (user_id, class_id, subject_id, enrollment_type) VALUES (?, ?, ?, ?)",
+      "INSERT INTO enrollments (user_id, class_id, subject_id, enrollment_type) VALUES (?, ?, ?, ?) RETURNING id",
       [user_id, resolvedClassId, resolvedSubjectId || null, enrollment_type]
     );
 
     res.status(201).json({
       message: "Enrollment Successful",
-      enrollmentId: insEnroll.insertId,
+      enrollmentId: insEnroll[0] && insEnroll[0].id,
       class_id: resolvedClassId,
       subject_id: resolvedSubjectId || null,
     });

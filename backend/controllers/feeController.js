@@ -51,7 +51,7 @@ exports.addFee = async (req, res) => {
 
     // Prevent duplicate fee entry
     const [existing] = await db.query(
-      "SELECT id FROM fees WHERE class_id = ? AND subject_id <=> ? AND fee_type = ?",
+      "SELECT id FROM fees WHERE class_id = ? AND subject_id IS NOT DISTINCT FROM ? AND fee_type = ?",
       [class_id, subject_id || null, fee_type]
     );
 

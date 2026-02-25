@@ -463,6 +463,23 @@ function Subjects() {
                 <p className="text-gray-500 py-2 text-center">
                   Choose from the standard subjects for this grade — board-specific syllabus applies.
                 </p>
+                <div className="flex items-center justify-center gap-4 mb-4">
+                  <label className="text-sm font-medium">Mode:</label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setEnrollmentMode('Individual')}
+                      className={`px-3 py-1 rounded ${enrollmentMode === 'Individual' ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700'}`}
+                    >
+                      Individual
+                    </button>
+                    <button
+                      onClick={() => setEnrollmentMode('Group')}
+                      className={`px-3 py-1 rounded ${enrollmentMode === 'Group' ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700'}`}
+                    >
+                      Group
+                    </button>
+                  </div>
+                </div>
                 <div className="grid md:grid-cols-2 gap-4 mb-6">
                   {(() => {
                     const classNum = getSelectedClassNumber();
@@ -477,6 +494,8 @@ function Subjects() {
 
                     return display.map((item, idx) => {
                       const enrolled = item.id ? isEnrolled(item.id) : false;
+                      // compute fee if class id is DB-backed
+                      const feeAmount = selectedClass ? computeFeeAmount(selectedClass, item.id, enrollmentMode) : null;
                       return (
                         <motion.div
                           key={`canonical-${idx}-${item.name}`}
@@ -499,6 +518,15 @@ function Subjects() {
                               Enroll <FiArrowRight className="w-4 h-4" />
                             </button>
                           )}
+
+                          {/* Fee display */}
+                          <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                            {feeAmount ? (
+                              <span className="font-semibold">Fee: ₹{Number(feeAmount).toFixed(0)} ({enrollmentMode})</span>
+                            ) : (
+                              <span className="text-xs">Fee: Contact admin</span>
+                            )}
+                          </div>
 
                           {enrolled && (
                             <p className="mt-4 text-sm text-green-600 font-semibold flex items-center gap-2">
